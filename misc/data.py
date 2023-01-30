@@ -170,6 +170,7 @@ class Data:
         color: str = None,
         axis_on_right: bool = False,
         show_now: bool = False,
+        maximize: bool = False,
     ) -> tuple[plt.figure, plt.axis, str, bool]:
         """
 
@@ -191,7 +192,8 @@ class Data:
             The color of the plot
         show_now
             If the plot should be shown right now (blocking)
-
+        maximize
+            If the figure should be maximized in the screen
         Returns
         -------
         The figure and the axis handler
@@ -218,6 +220,10 @@ class Data:
             ax.set_ylim(y_lim)
         if axis_on_right:
             ax.yaxis.tick_right()
+
+        if maximize:
+            manager = plt.get_current_fig_manager()
+            manager.window.showMaximized()
 
         return fig, ax, color, show_now
 
