@@ -22,7 +22,7 @@ class DataReader:
         The parsed data in the file
         """
 
-        return CoPData(DataReader._read_csv(filepath, nb_sensors=2, nb_headers_rows=1, conversion_factor=1/1000))
+        return CoPData(DataReader._read_csv(filepath, nb_sensors=2, nb_headers_rows=1, conversion_factor=1 / 1000))
 
     @staticmethod
     def read_gl_data(filepath) -> CoPData:
@@ -39,7 +39,7 @@ class DataReader:
         The parsed data in the file
         """
 
-        return CoPData(DataReader._read_csv(filepath, nb_sensors=2, nb_headers_rows=1, conversion_factor=1/1000))
+        return CoPData(DataReader._read_csv(filepath, nb_sensors=2, nb_headers_rows=1, conversion_factor=1 / 1000))
 
     @staticmethod
     def read_sensor_data(filepath) -> Data:
@@ -98,7 +98,7 @@ class DataReader:
                     nb_sensors = len(row[1:])
                     out = Data(nb_sensors=nb_sensors, conversion_factor=conversion_factor)
 
-                out.append(float(row[0]), [float(i) for i in row[1:nb_sensors + 1]])
+                out.append(float(row[0]), [float(i) for i in row[1 : nb_sensors + 1]])
 
         return out
 
