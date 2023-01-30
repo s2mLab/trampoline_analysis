@@ -10,8 +10,8 @@ def main():
     show_cop_displacement = True
     show_cop_velocity = True
     show_cop_acceleration = True
-    show_sensors = False
-    skip_huge_files = True
+    show_sensors = True
+    skip_huge_files = False
     # ----------------- #
 
     if show_sensors and skip_huge_files:
@@ -22,32 +22,19 @@ def main():
         filenames = DataReader.fetch_trial_names(folder)
 
         cycl_data = []
-        right_gl_data = []
-        left_gl_data = []
-        right_sensor_data = []
-        left_sensor_data = []
+        force_data = []
         for filename in filenames:
             # Load data
-            cycl_data.append(DataReader.read_cycl_data(f"{data_folder}/{subject}/{filename}_CYCL.CSV"))
-            right_gl_data.append(DataReader.read_gl_data(f"{data_folder}/{subject}/{filename}_GL_R.CSV"))
-            left_gl_data.append(DataReader.read_gl_data(f"{data_folder}/{subject}/{filename}_GL_L.CSV"))
-            right_sensor_data.append(
-                DataReader.read_sensor_data(f"{data_folder}/{subject}/{filename}_R.CSV")
-                if not skip_huge_files
-                else None
-            )
-            left_sensor_data.append(
-                DataReader.read_sensor_data(f"{data_folder}/{subject}/{filename}_L.CSV")
+            cycl_data.append(DataReader.read_cycl_data(f"{data_folder}/{subject}/{filename}"))
+            force_data.append(
+                DataReader.read_sensor_data(f"{data_folder}/{subject}/{filename}")
                 if not skip_huge_files
                 else None
             )
 
         # Concatenated the data in a single matrix
         cycl_data = concatenate_data(cycl_data)
-        right_gl_data = concatenate_data(right_gl_data)
-        left_gl_data = concatenate_data(left_gl_data)
-        right_sensor_data = concatenate_data(right_sensor_data) if not skip_huge_files else None
-        left_sensor_data = concatenate_data(left_sensor_data) if not skip_huge_files else None
+        force_data = concatenate_data(force_data) if not skip_huge_files else None
 
         # Print if required
         filename = "All data"
@@ -60,8 +47,6 @@ def main():
                 y_label="Y-coordinates (m)",
                 color="blue",
             )
-            right_gl_data.plot(figure=fig_name, color="orange")
-            left_gl_data.plot(figure=fig_name, color="orange")
 
         if show_cop_displacement:
             fig_name = f"CoP displacement ({filename})"
@@ -86,7 +71,7 @@ def main():
             cycl_data.plot_velocity(
                 figure=fig_name,
                 title=f"CoP velocity (blue) and Jump time (orange)\n"
-                f"Integral correlation = {pearsonr(cycl_data.impulses, cycl_data.flight_times[1:])[0]:0.3f}\n"
+                f"Integral correlation = {pearsonr(cycl_data.velocity_integral, cycl_data.flight_times[1:])[0]:0.3f}\n"
                 f"Ranges correlation = {pearsonr(cycl_data.velocity_ranges, cycl_data.flight_times[1:])[0]:0.3f}\n",
                 x_label="Time (s)",
                 y_label="CoP velocity (m/s)",
@@ -120,14 +105,23 @@ def main():
             )
 
         if show_sensors:
-            fig_name = f"Sensors ({filename})"
-            right_sensor_data.plot(
+            fig_name = f"Forces ({filename})"
+            force_data.plot(
                 figure=fig_name,
-                title="Sensors",
+                title="Sensor forces (blue) and Jump time (orange)\n"
+                f"Integral correlation = {pearsonr(force_data.force_integral, force_data.flight_times[1:])[0]:0.3f}\n",
                 x_label="Time (s)",
-                y_label="Sensors",
+                y_label="Force (N)",
+                color="blue",
             )
-            left_sensor_data.plot(figure=fig_name)
+            force_data.plot_flight_times(
+                figure=fig_name,
+                y_label="Jump time (s)",
+                y_lim=[1, 2],
+                axis_on_right=True,
+                color="orange",
+            )
+            # left_sensor_data.plot(figure=fig_name)
 
         if show_cop or show_cop_displacement or show_cop_velocity or show_cop_acceleration or show_sensors:
             Data.show()
