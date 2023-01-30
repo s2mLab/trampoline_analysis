@@ -32,6 +32,24 @@ def _derivative(t: np.ndarray, data: np.ndarray, window: int = 1) -> np.ndarray:
     )
 
 
+def _integral(t: np.ndarray, data: np.ndarray) -> float:
+    """
+    Compute the integral of the data using trapezoid
+
+    Parameters
+    ----------
+    t
+        The time vector
+    data
+        The data to compute the integral from
+
+    Returns
+    -------
+    The integral of the data
+    """
+    return np.nansum((t[1:] - t[:-1]) * ((data[1:, :] + data[:-1, :]) / 2).T)
+
+
 def _prepare_figure(
     figure: str = None,
     title: str = None,
@@ -129,11 +147,11 @@ class Data:
             The data to add (converted with self.conversion_factor)
         """
 
-        self.t = np.concatenate((self.t, (t, )))
+        self.t = np.concatenate((self.t, (t,)))
 
         # Remove the MAX_INT and convert to m
         y = [data * self.conversion_factor if data != 2147483647 else np.nan for data in y]
-        self.y = np.concatenate((self.y, (y, )))
+        self.y = np.concatenate((self.y, (y,)))
 
     def concatenate(self, other):
         """
@@ -219,10 +237,16 @@ class CoPData(Data):
 
         # Remove the extra index created from the discrepancy of the concatenated data
         out.takeoffs_indices = np.concatenate(
-            (out.takeoffs_indices[0:len(self.takeoffs_indices)],  out.takeoffs_indices[len(self.takeoffs_indices)+1:])
+            (
+                out.takeoffs_indices[0 : len(self.takeoffs_indices)],
+                out.takeoffs_indices[len(self.takeoffs_indices) + 1 :],
+            )
         )
         out.landings_indices = np.concatenate(
-            (out.landings_indices[0:len(self.landings_indices)], out.landings_indices[len(self.landings_indices) + 1:])
+            (
+                out.landings_indices[0 : len(self.landings_indices)],
+                out.landings_indices[len(self.landings_indices) + 1 :],
+            )
         )
 
         return out
@@ -246,11 +270,70 @@ class CoPData(Data):
             self.t[landing] - self.t[takeoff] for takeoff, landing in zip(self.takeoffs_indices, self.landings_indices)
         )
 
+    @property
+    def displacement_integral(self) -> tuple[float, ...]:
+        """
+        Get the horizontal displacement integral in the mat
+        """
+        return tuple(
+            _integral(self.t[l:t], self.displacement[l:t])
+            for t, l in zip(self.takeoffs_indices[1:], self.landings_indices[0:-1])
+        )
+
+    @property
+    def displacement_ranges(self) -> tuple[float, ...]:
+        """
+        Get the horizontal range
+        """
+        return tuple(
+            np.nanmax(self.displacement[l:t]) - np.nanmin(self.displacement[l:t])
+            for t, l in zip(self.takeoffs_indices[1:], self.landings_indices[0:-1])
+        )
+
+    @property
+    def impulses(self) -> tuple[float, ...]:
+        """
+        Get the horizontal impulses in the mat
+        """
+        return tuple(
+            _integral(self.t[l:t], self.velocity[l:t])
+            for t, l in zip(self.takeoffs_indices[1:], self.landings_indices[0:-1])
+        )
+
+    @property
+    def velocity_ranges(self) -> tuple[float, ...]:
+        """
+        Get the horizontal range
+        """
+        return tuple(
+            np.nanmax(self.velocity[l:t]) - np.nanmin(self.velocity[l:t])
+            for t, l in zip(self.takeoffs_indices[1:], self.landings_indices[0:-1])
+        )
+
+    @property
+    def acceleration_integral(self) -> tuple[float, ...]:
+        """
+        Get the horizontal acceleration integral in the mat
+        """
+        return tuple(
+            _integral(self.t[l:t], self.acceleration[l:t])
+            for t, l in zip(self.takeoffs_indices[1:], self.landings_indices[0:-1])
+        )
+
+    @property
+    def acceleration_ranges(self) -> tuple[float, ...]:
+        """
+        Get the horizontal range
+        """
+        return tuple(
+            np.nanmax(self.acceleration[l:t]) - np.nanmin(self.acceleration[l:t])
+            for t, l in zip(self.takeoffs_indices[1:], self.landings_indices[0:-1])
+        )
+
     def plot(
         self,
         override_y: np.ndarray = None,
         **figure_options,
-
     ) -> plt.figure:
         """
         Plot the data as XY position in an axis('equal') manner
@@ -400,5 +483,3 @@ class CoPData(Data):
             )
 
         return takeoffs_indices, landings_indices
-
-

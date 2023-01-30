@@ -1,4 +1,5 @@
 from misc import Data, DataReader
+from scipy.stats import pearsonr
 
 
 def main():
@@ -30,8 +31,16 @@ def main():
             cycl_data.append(DataReader.read_cycl_data(f"{data_folder}/{subject}/{filename}_CYCL.CSV"))
             right_gl_data.append(DataReader.read_gl_data(f"{data_folder}/{subject}/{filename}_GL_R.CSV"))
             left_gl_data.append(DataReader.read_gl_data(f"{data_folder}/{subject}/{filename}_GL_L.CSV"))
-            right_sensor_data.append(DataReader.read_sensor_data(f"{data_folder}/{subject}/{filename}_R.CSV") if not skip_huge_files else None)
-            left_sensor_data.append(DataReader.read_sensor_data(f"{data_folder}/{subject}/{filename}_L.CSV") if not skip_huge_files else None)
+            right_sensor_data.append(
+                DataReader.read_sensor_data(f"{data_folder}/{subject}/{filename}_R.CSV")
+                if not skip_huge_files
+                else None
+            )
+            left_sensor_data.append(
+                DataReader.read_sensor_data(f"{data_folder}/{subject}/{filename}_L.CSV")
+                if not skip_huge_files
+                else None
+            )
 
         # Concatenated the data in a single matrix
         cycl_data = concatenate_data(cycl_data)
@@ -49,59 +58,65 @@ def main():
                 title="CoP",
                 x_label="X-coordinates (m)",
                 y_label="Y-coordinates (m)",
-                color='blue',
+                color="blue",
             )
-            right_gl_data.plot(figure=fig_name, color='orange')
-            left_gl_data.plot(figure=fig_name, color='orange')
+            right_gl_data.plot(figure=fig_name, color="orange")
+            left_gl_data.plot(figure=fig_name, color="orange")
 
         if show_cop_displacement:
             fig_name = f"CoP displacement ({filename})"
             cycl_data.plot_displacement(
                 figure=fig_name,
-                title="CoP displacement (blue) and Jump time (orange)",
+                title=f"CoP displacement (blue) and Jump time (orange)\n"
+                f"Integral correlation = {pearsonr(cycl_data.displacement_integral, cycl_data.flight_times[1:])[0]:0.3f}\n"
+                f"Ranges correlation = {pearsonr(cycl_data.displacement_ranges, cycl_data.flight_times[1:])[0]:0.3f}\n",
                 x_label="Time (s)",
                 y_label="CoP displacement (m)",
-                color='blue',
+                color="blue",
             )
             cycl_data.plot_flight_times(
                 figure=fig_name,
                 y_label="Jump time (s)",
                 axis_on_right=True,
-                color='orange',
+                color="orange",
             )
 
         if show_cop_velocity:
             fig_name = f"CoP Velocity ({filename})"
             cycl_data.plot_velocity(
                 figure=fig_name,
-                title="CoP velocity (blue) and Jump time (orange)",
+                title=f"CoP velocity (blue) and Jump time (orange)\n"
+                f"Integral correlation = {pearsonr(cycl_data.impulses, cycl_data.flight_times[1:])[0]:0.3f}\n"
+                f"Ranges correlation = {pearsonr(cycl_data.velocity_ranges, cycl_data.flight_times[1:])[0]:0.3f}\n",
                 x_label="Time (s)",
                 y_label="CoP velocity (m/s)",
-                color='blue',
+                color="blue",
             )
             cycl_data.plot_flight_times(
                 figure=fig_name,
                 y_label="Jump time (s)",
                 axis_on_right=True,
-                color='orange',
+                color="orange",
             )
 
         if show_cop_acceleration:
             fig_name = f"CoP Acceleration ({filename})"
             cycl_data.plot_acceleration(
                 figure=fig_name,
-                title="CoP acceleration (blue) and Jump time (orange)",
+                title=f"CoP acceleration (blue) and Jump time (orange)\n"
+                f"Integral correlation = {pearsonr(cycl_data.acceleration_integral, cycl_data.flight_times[1:])[0]:0.3f}\n"
+                f"Ranges correlation = {pearsonr(cycl_data.acceleration_ranges, cycl_data.flight_times[1:])[0]:0.3f}\n",
                 x_label="Time (s)",
                 y_label="CoP acceleration (m/s/s)",
                 y_lim=[-60, 200],
-                color='blue',
+                color="blue",
             )
             cycl_data.plot_flight_times(
                 figure=fig_name,
                 y_label="Jump time (s)",
                 y_lim=[1, 2],
                 axis_on_right=True,
-                color='orange',
+                color="orange",
             )
 
         if show_sensors:
