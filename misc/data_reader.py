@@ -25,7 +25,9 @@ class DataReader:
         The parsed data in the file
         """
 
-        return CoPData(DataReader._read_csv(f"{filepath}_CYCL.CSV", nb_sensors=2, nb_headers_rows=1, conversion_factor=1 / 1000))
+        return CoPData(
+            DataReader._read_csv(f"{filepath}_CYCL.CSV", nb_sensors=2, nb_headers_rows=1, conversion_factor=1 / 1000)
+        )
 
     @staticmethod
     def read_sensor_data(filepath) -> ForceSensorData:
