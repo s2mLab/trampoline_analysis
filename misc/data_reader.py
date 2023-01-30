@@ -3,7 +3,8 @@ import re
 
 import csv
 
-from .data import Data, CoPData
+from .data import Data
+from .cop_data import CoPData
 
 
 class DataReader:
