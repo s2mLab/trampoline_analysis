@@ -2,9 +2,11 @@ import os
 import re
 
 import csv
+import numpy as np
 
 from .data import Data
 from .cop_data import CoPData
+from .force_sensor_data import ForceSensorData
 
 
 class DataReader:
@@ -23,10 +25,10 @@ class DataReader:
         The parsed data in the file
         """
 
-        return CoPData(DataReader._read_csv(filepath, nb_sensors=2, nb_headers_rows=1, conversion_factor=1 / 1000))
+        return CoPData(DataReader._read_csv(f"{filepath}_CYCL.CSV", nb_sensors=2, nb_headers_rows=1, conversion_factor=1 / 1000))
 
     @staticmethod
-    def read_gl_data(filepath) -> CoPData:
+    def read_sensor_data(filepath) -> ForceSensorData:
         """
         Read the GL file which is the CoP coordinate of gait line
 
@@ -39,25 +41,15 @@ class DataReader:
         -------
         The parsed data in the file
         """
+        right = DataReader._read_csv(f"{filepath}_R.CSV", nb_headers_rows=4)
+        left = DataReader._read_csv(f"{filepath}_L.CSV", nb_headers_rows=4)
+        if sum(right.t - left.t) != 0.0:
+            raise RuntimeError("Left and Right sensor data don't match")
 
-        return CoPData(DataReader._read_csv(filepath, nb_sensors=2, nb_headers_rows=1, conversion_factor=1 / 1000))
-
-    @staticmethod
-    def read_sensor_data(filepath) -> Data:
-        """
-        Read the GL file which is the CoP coordinate of gait line
-
-        Parameters
-        ----------
-        filepath
-            The path of the file to read
-
-        Returns
-        -------
-        The parsed data in the file
-        """
-
-        return DataReader._read_csv(filepath, nb_headers_rows=4)
+        both = Data()
+        both.t = right.t
+        both.y = (np.sum(right.y, axis=1) + np.sum(left.y, axis=1))[:, np.newaxis]
+        return ForceSensorData(both)
 
     @staticmethod
     def _read_csv(
