@@ -1,6 +1,13 @@
 import numpy as np
 
 
+def concatenate_data(all_data: list):
+    concatenated_data = all_data[0]
+    for data in all_data[1:]:
+        concatenated_data = concatenated_data.concatenate(data)
+    return concatenated_data
+
+
 def derivative(t: np.ndarray, data: np.ndarray, window: int = 1) -> np.ndarray:
     """
     Compute the non-sliding derivative of current data

@@ -1,4 +1,4 @@
-from misc import Data, DataReader
+from misc import Data, DataReader, concatenate_data
 from scipy.stats import pearsonr
 
 
@@ -27,9 +27,7 @@ def main():
             # Load data
             cycl_data.append(DataReader.read_cycl_data(f"{data_folder}/{subject}/{filename}"))
             force_data.append(
-                DataReader.read_sensor_data(f"{data_folder}/{subject}/{filename}")
-                if not skip_huge_files
-                else None
+                DataReader.read_sensor_data(f"{data_folder}/{subject}/{filename}") if not skip_huge_files else None
             )
 
         # Concatenated the data in a single matrix
@@ -53,7 +51,7 @@ def main():
             cycl_data.plot_displacement(
                 figure=fig_name,
                 title=f"CoP displacement (blue) and Jump time (orange)\n"
-                f"Integral correlation = {pearsonr(cycl_data.displacement_integral, cycl_data.flight_times[1:])[0]:0.3f}\n"
+                f"Integral correlation = {pearsonr(cycl_data.displacement_integral, cycl_data.flight_times[1:])[0]:0.3f}c\n"
                 f"Ranges correlation = {pearsonr(cycl_data.displacement_ranges, cycl_data.flight_times[1:])[0]:0.3f}\n",
                 x_label="Time (s)",
                 y_label="CoP displacement (m)",
@@ -125,13 +123,6 @@ def main():
 
         if show_cop or show_cop_displacement or show_cop_velocity or show_cop_acceleration or show_sensors:
             Data.show()
-
-
-def concatenate_data(all_data: list):
-    concatenated_data = all_data[0]
-    for data in all_data[1:]:
-        concatenated_data = concatenated_data.concatenate(data)
-    return concatenated_data
 
 
 if __name__ == "__main__":

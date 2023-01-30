@@ -24,7 +24,9 @@ class Data:
             self.t: np.ndarray = np.ndarray((0,))
             self.y: np.ndarray = np.ndarray((0, nb_sensors))
             self.conversion_factor = conversion_factor
-        self.takeoffs_indices, self.landings_indices = self.compute_timings_indices(np.sum(self.y, axis=1)[:, np.newaxis])
+        self.takeoffs_indices, self.landings_indices = self.compute_timings_indices(
+            np.sum(self.y, axis=1)[:, np.newaxis]
+        )
 
     def append(self, t, y) -> None:
         """
@@ -258,4 +260,3 @@ class Data:
             )
 
         return takeoffs_indices, landings_indices
-
